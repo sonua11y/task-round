@@ -54,14 +54,19 @@ export default function Login() {
       <div className="relative w-96 flex flex-col items-center">
 
         {/* LOGIN PANEL */}
-        <div
-  className="w-full text-white p-10 flex flex-col items-center shadow-2xl"
-  style={{
-    background: "linear-gradient(180deg, #0f2a47 0%, #081c2f 100%)",
-    clipPath: "polygon(0 0, 100% 0, 100% 100%, 50% 75%, 0 100%)",
-    minHeight: "600px"
-  }}
->
+        <div className="relative w-full shadow-2xl" style={{ minHeight: "600px" }}>
+          {/* Decorative clipped background — pointer-events disabled so it never blocks clicks */}
+          <div
+            aria-hidden="true"
+            style={{
+              position: "absolute",
+              inset: 0,
+              background: "linear-gradient(180deg, #0f2a47 0%, #081c2f 100%)",
+              clipPath: "polygon(0 0, 100% 0, 100% 100%, 50% 75%, 0 100%)",
+              pointerEvents: "none",
+            }}
+          />
+          <div className="relative w-full text-white p-10 flex flex-col items-center" style={{ paddingBottom: "100px" }}>
           <h2 className="text-2xl font-bold mb-6 text-center">
             Login
           </h2>
@@ -167,6 +172,7 @@ export default function Login() {
             >
               Register
             </a>
+          </div>
           </div>
         </div>
 
