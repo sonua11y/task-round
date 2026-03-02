@@ -19,7 +19,10 @@ def _safe_password(password: str) -> str:
 
 
 def register_user(db: Session, full_name: str, email: str, password: str):
-    existing = db.query(Student).filter(Student.email == email).first()
+    # Normalize email so registration and login behave consistently
+    normalized_email = email.strip().lower()
+
+    existing = db.query(Student).filter(Student.email == normalized_email).first()
     if existing:
         raise HTTPException(status_code=400, detail="Email already registered")
 
@@ -36,7 +39,7 @@ def register_user(db: Session, full_name: str, email: str, password: str):
 
     user = Student(
         full_name=full_name,
-        email=email,
+        email=normalized_email,
         password=hashed,
     )
     db.add(user)
@@ -45,7 +48,10 @@ def register_user(db: Session, full_name: str, email: str, password: str):
     return user
 
 def login_user(db: Session, email: str, password: str):
-    user = db.query(Student).filter(Student.email == email).first()
+    # Normalize email in the same way as registration
+    normalized_email = email.strip().lower()
+
+    user = db.query(Student).filter(Student.email == normalized_email).first()
     if not user:
         print(f"Login failed: user not found for email {email}")
         raise HTTPException(status_code=400, detail="Invalid credentials")

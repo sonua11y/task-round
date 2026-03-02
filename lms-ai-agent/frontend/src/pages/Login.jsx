@@ -13,8 +13,11 @@ export default function Login() {
     const errors = {};
     if (!email.match(/^[^@\s]+@[^@\s]+\.[^@\s]+$/))
       errors.email = "Invalid email format";
-    if (password.length < 6)
+    if (password.length < 6) {
       errors.password = "Password must be at least 6 characters";
+    } else if (password.length > 72) {
+      errors.password = "Password cannot be longer than 72 characters";
+    }
     setFieldError(errors);
     return Object.keys(errors).length === 0;
   };
@@ -127,6 +130,7 @@ export default function Login() {
                     ? "ring-2 ring-red-500"
                     : ""
                 }`}
+                maxLength={72}
                 value={password}
                 onChange={(e) => {
                   setPassword(e.target.value);
