@@ -1,4 +1,5 @@
 import os
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.api import auth_routes, profile_routes, chatbot_routes
@@ -12,10 +13,54 @@ load_dotenv()
 if not os.getenv("OPENAI_API_KEY"):
     print("WARNING: OPENAI_API_KEY is not set.  The chatbot agent will be inactive until you provide a valid key (set it in your environment or in .env).")
 
-# Ensure all database tables exist
-Base.metadata.create_all(bind=engine)
 
-app = FastAPI()
+def _seed():
+    """Create tables and seed courses + demo user if they don't exist."""
+    from app.db.session import SessionLocal
+    from app.db.models import Student, Course
+    from app.core.security import hash_password
+    from datetime import datetime
+
+    Base.metadata.create_all(bind=engine)
+
+    db = SessionLocal()
+    try:
+        # Seed courses
+        courses = [
+            {"title": "GenAI", "duration_months": 6, "fee": 1000},
+            {"title": "Machine Learning", "duration_months": 6, "fee": 1200},
+            {"title": "Full Stack", "duration_months": 6, "fee": 1100},
+            {"title": "Cloud Computing", "duration_months": 6, "fee": 1300},
+            {"title": "Flutter", "duration_months": 6, "fee": 900},
+            {"title": "Cyber Security", "duration_months": 6, "fee": 1400},
+        ]
+        for c in courses:
+            if not db.query(Course).filter(Course.title == c["title"]).first():
+                db.add(Course(**c))
+
+        # Seed demo user
+        if not db.query(Student).filter(Student.email == "test@example.com").first():
+            db.add(Student(
+                full_name="Test User",
+                email="test@example.com",
+                password=hash_password("password123"),
+                created_at=datetime.utcnow(),
+            ))
+            print("Demo user created: test@example.com / password123")
+
+        db.commit()
+        print("Startup seed complete.")
+    finally:
+        db.close()
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    _seed()
+    yield
+
+
+app = FastAPI(lifespan=lifespan)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
