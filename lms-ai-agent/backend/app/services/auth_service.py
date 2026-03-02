@@ -3,14 +3,41 @@ from fastapi import HTTPException
 from app.db.models import Student
 from app.core.security import hash_password, verify_password, create_token
 
+
+def _safe_password(password: str) -> str:
+    """
+    Ensure password never exceeds bcrypt's 72‑byte limit before hashing,
+    even if the underlying hashing helper isn't defensive in a given deploy.
+    """
+    if not isinstance(password, str):
+        password = str(password)
+    password_bytes = password.encode("utf-8")
+    if len(password_bytes) > 72:
+        password_bytes = password_bytes[:72]
+        return password_bytes.decode("utf-8", errors="ignore")
+    return password
+
+
 def register_user(db: Session, full_name: str, email: str, password: str):
     existing = db.query(Student).filter(Student.email == email).first()
     if existing:
         raise HTTPException(status_code=400, detail="Email already registered")
+
+    safe_password = _safe_password(password)
+
+    try:
+        hashed = hash_password(safe_password)
+    except Exception:
+        # If anything goes wrong at the hashing layer, fail with a clean message
+        raise HTTPException(
+            status_code=400,
+            detail="Password is not valid. Please use a shorter password (max ~70 characters).",
+        )
+
     user = Student(
         full_name=full_name,
         email=email,
-        password=hash_password(password)
+        password=hashed,
     )
     db.add(user)
     db.commit()
