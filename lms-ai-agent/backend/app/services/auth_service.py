@@ -7,7 +7,6 @@ def register_user(db: Session, full_name: str, email: str, password: str):
     existing = db.query(Student).filter(Student.email == email).first()
     if existing:
         raise HTTPException(status_code=400, detail="Email already registered")
-
     user = Student(
         full_name=full_name,
         email=email,
