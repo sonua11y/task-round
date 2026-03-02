@@ -4,8 +4,12 @@ from langchain_core.messages import HumanMessage
 import os
 import logging
 
-DATABASE_URL = "sqlite:///./kalviumlabs_forge.sqlite"
 logger = logging.getLogger("sql_agent")
+
+# Reuse the same DATABASE_URL resolution logic as session.py
+_DB_URL = os.getenv("DATABASE_URL", "sqlite:///./kalviumlabs_forge.sqlite")
+if _DB_URL.startswith("postgres://"):
+    _DB_URL = _DB_URL.replace("postgres://", "postgresql://", 1)
 
 
 def build_sql_agent():
@@ -23,7 +27,7 @@ def build_sql_agent():
     class SimpleSQLAgent:
         def __init__(self):
             self.db = SQLDatabase.from_uri(
-                DATABASE_URL,
+                _DB_URL,
                 include_tables=["students", "education_details", "courses", "applications"],
             )
             key = os.getenv("OPENAI_API_KEY")
