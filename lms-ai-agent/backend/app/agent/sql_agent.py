@@ -66,6 +66,13 @@ User request: {user_prompt}
             # execute the SQL; errors are captured and returned as text
             try:
                 execution_result = self.db.run(sql)
+                # Commit changes for UPDATE/INSERT/DELETE
+                if sql.strip().upper().startswith(("UPDATE", "INSERT", "DELETE")):
+                    # Use SQLAlchemy's engine to commit if possible
+                    try:
+                        self.db._engine.raw_connection().commit()
+                    except Exception as commit_exc:
+                        logger.error(f"DB commit error: {commit_exc}")
                 logger.debug(f"SQL execution result: {execution_result}")
             except Exception as exc:
                 logger.error(f"SQL execution error for '{sql}': {exc}")

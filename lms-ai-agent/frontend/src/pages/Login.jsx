@@ -43,7 +43,9 @@ export default function Login() {
 
       navigate("/profile");
     } catch (error) {
-      setError("Invalid credentials");
+      // Show backend error message if available
+      const backendMsg = error?.response?.data?.detail || error?.message || "Invalid credentials";
+      setError(backendMsg);
     }
   };
 
