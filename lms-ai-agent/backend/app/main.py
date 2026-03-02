@@ -1,4 +1,5 @@
 import os
+import time
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -9,13 +10,12 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# warn if the OpenAI key is missing early so developers notice
 if not os.getenv("OPENAI_API_KEY"):
-    print("WARNING: OPENAI_API_KEY is not set.  The chatbot agent will be inactive until you provide a valid key (set it in your environment or in .env).")
+    print("WARNING: OPENAI_API_KEY is not set. The chatbot agent will be inactive.")
 
 
 def _seed():
-    """Seed courses + demo user if they don't exist (tables must already exist)."""
+    """Seed courses + demo user if they don't exist."""
     from app.db.session import SessionLocal
     from app.db.models import Student, Course
     from app.core.security import hash_password
@@ -23,7 +23,6 @@ def _seed():
 
     db = SessionLocal()
     try:
-        # Seed courses
         courses = [
             {"title": "GenAI", "duration_months": 6, "fee": 1000},
             {"title": "Machine Learning", "duration_months": 6, "fee": 1200},
@@ -36,7 +35,6 @@ def _seed():
             if not db.query(Course).filter(Course.title == c["title"]).first():
                 db.add(Course(**c))
 
-        # Seed demo user
         if not db.query(Student).filter(Student.email == "test@example.com").first():
             db.add(Student(
                 full_name="Test User",
@@ -55,29 +53,24 @@ def _seed():
         db.close()
 
 
-def _ensure_tables(max_retries: int = 6, delay: float = 1.5) -> None:
-    """Run create_all with retries so a transient hot-reload lock never blocks startup."""
-    import time
-    for attempt in range(1, max_retries + 1):
-        try:
-            Base.metadata.create_all(bind=engine)
-            return
-        except Exception as e:
-            if attempt < max_retries:
-                print(f"DB locked (attempt {attempt}/{max_retries}), retrying in {delay}s...")
-                time.sleep(delay)
-            else:
-                # Last resort: tables likely already exist from previous run
-                print(f"WARNING: create_all failed after {max_retries} attempts ({e}). Assuming tables exist.")
-
-
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    _ensure_tables()   # always runs, retries on lock
+    for attempt in range(1, 6):
+        try:
+            Base.metadata.create_all(bind=engine)
+            break
+        except Exception as e:
+            if attempt < 5:
+                print(f"DB locked (attempt {attempt}/5), retrying in 2s...")
+                time.sleep(2)
+            else:
+                print(f"WARNING: create_all skipped after 5 attempts ({e}). Tables assumed to exist.")
+
     try:
-        _seed()        # optional — skip if still locked
+        _seed()
     except Exception as e:
         print(f"WARNING: startup seed skipped ({e})")
+
     yield
 
 
