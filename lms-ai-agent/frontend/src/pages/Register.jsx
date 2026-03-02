@@ -9,6 +9,7 @@ export default function Register() {
     password: "",
   });
   const [errors, setErrors] = useState({});
+  const [formError, setFormError] = useState("");
   const [emailExists, setEmailExists] = useState(false);
   const [nameExists, setNameExists] = useState(false);
   const navigate = useNavigate();
@@ -38,7 +39,11 @@ export default function Register() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!validate()) return;
+    setFormError("");
+    if (!validate()) {
+      setFormError("Please fix the errors below before registering.");
+      return;
+    }
     try {
       // Truncate password to 72 characters
       const formData = { ...form, password: form.password.slice(0, 72) };
@@ -50,7 +55,7 @@ export default function Register() {
         if (errorMsg.toLowerCase().includes("name")) setNameExists(true);
         if (errorMsg.toLowerCase().includes("mail") || errorMsg.toLowerCase().includes("email")) setEmailExists(true);
       } else {
-        alert("Registration failed");
+        setFormError(errorMsg || "Registration failed. Please try again.");
       }
     }
   };
@@ -74,6 +79,11 @@ export default function Register() {
           {/* Actual content — no clip-path, so every element is fully clickable */}
           <div className="relative w-full text-white p-10 flex flex-col items-center" style={{ paddingBottom: "120px" }}>
           <h2 className="text-2xl font-bold mb-6 text-center">Register</h2>
+          {formError && (
+            <div className="w-full bg-red-600 text-white text-sm font-semibold px-4 py-3 rounded mb-2 text-center">
+              {formError}
+            </div>
+          )}
           <form onSubmit={handleSubmit} className="space-y-5 w-full">
             {/* FULL NAME */}
             <div>

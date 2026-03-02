@@ -55,13 +55,27 @@ def _seed():
         db.close()
 
 
+def _ensure_tables(max_retries: int = 6, delay: float = 1.5) -> None:
+    """Run create_all with retries so a transient hot-reload lock never blocks startup."""
+    import time
+    for attempt in range(1, max_retries + 1):
+        try:
+            Base.metadata.create_all(bind=engine)
+            return
+        except Exception as e:
+            if attempt < max_retries:
+                print(f"DB locked (attempt {attempt}/{max_retries}), retrying in {delay}s...")
+                time.sleep(delay)
+            else:
+                # Last resort: tables likely already exist from previous run
+                print(f"WARNING: create_all failed after {max_retries} attempts ({e}). Assuming tables exist.")
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    _ensure_tables()   # always runs, retries on lock
     try:
-        # create_all is idempotent; on hot-reload the DB may be briefly locked
-        # by the old process — catch that and continue (tables already exist).
-        Base.metadata.create_all(bind=engine)
-        _seed()
+        _seed()        # optional — skip if still locked
     except Exception as e:
         print(f"WARNING: startup seed skipped ({e})")
     yield
