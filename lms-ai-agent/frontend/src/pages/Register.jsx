@@ -17,8 +17,8 @@ export default function Register() {
     const newErrors = {};
     if (!form.name.trim()) {
       newErrors.name = "Name is required";
-    } else if (!/^[a-zA-Z0-9]{3,16}$/.test(form.name.trim())) {
-      newErrors.name = "Username must be 3-16 characters, alphanumeric only";
+    } else if (!/^[a-zA-Z0-9 ]{3,32}$/.test(form.name.trim())) {
+      newErrors.name = "Name must be 3-32 characters, letters, numbers, and spaces only";
     }
     if (!form.email.match(/^[^@\s]+@[^@\s]+\.[^@\s]+$/)) newErrors.email = "Invalid email format";
     if (form.password.length < 6) newErrors.password = "Password must be at least 6 characters";
