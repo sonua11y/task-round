@@ -130,6 +130,7 @@ export default function Register() {
               className="w-full py-3 rounded-sm font-semibold text-white transition"
               style={{
                 background: "linear-gradient(90deg, #1f78d1 0%, #2ca6e0 100%)",
+                cursor: "pointer",
               }}
             >
               Register

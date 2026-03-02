@@ -158,6 +158,7 @@ export default function Login() {
               style={{
                 background:
                   "linear-gradient(90deg, #1f78d1 0%, #2ca6e0 100%)",
+                cursor: "pointer",
               }}
             >
               Login
