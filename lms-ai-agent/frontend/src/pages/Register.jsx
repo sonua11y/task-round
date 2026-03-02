@@ -21,8 +21,14 @@ export default function Register() {
     } else if (!/^[a-zA-Z0-9 ]{3,32}$/.test(form.name.trim())) {
       newErrors.name = "Name must be 3-32 characters, letters, numbers, and spaces only";
     }
-    if (!form.email.match(/^[^@\s]+@[^@\s]+\.[^@\s]+$/)) newErrors.email = "Invalid email format";
-    if (form.password.length < 6) newErrors.password = "Password must be at least 6 characters";
+    if (!form.email.match(/^[^@\s]+@[^@\s]+\.[^@\s]+$/)) {
+      newErrors.email = "Invalid email format";
+    }
+    if (form.password.length < 6) {
+      newErrors.password = "Password must be at least 6 characters";
+    } else if (form.password.length > 72) {
+      newErrors.password = "Password cannot be longer than 72 characters";
+    }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -128,6 +134,7 @@ export default function Register() {
                 name="password"
                 placeholder="Password"
                 className="w-full bg-white text-black px-4 py-3 rounded-sm outline-none"
+                maxLength={72}
                 value={form.password}
                 onChange={handleChange}
                 required
