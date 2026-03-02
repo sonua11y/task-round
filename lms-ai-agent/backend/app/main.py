@@ -57,13 +57,12 @@ def _seed():
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Always create tables — safe to run multiple times, no lock sensitivity
-    Base.metadata.create_all(bind=engine)
     try:
+        # create_all is idempotent; on hot-reload the DB may be briefly locked
+        # by the old process — catch that and continue (tables already exist).
+        Base.metadata.create_all(bind=engine)
         _seed()
     except Exception as e:
-        # A locked DB on hot-reload is transient; log and continue rather than
-        # crashing the server — tables and seed data already exist from last run.
         print(f"WARNING: startup seed skipped ({e})")
     yield
 
