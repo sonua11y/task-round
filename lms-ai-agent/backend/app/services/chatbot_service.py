@@ -1,8 +1,16 @@
 from app.agent.sql_agent import build_sql_agent
 
-# build the agent once at import time so the LLM and database
-# connection are cached
-agent = build_sql_agent()
+# Lazy-initialise the agent so a missing OPENAI_API_KEY does not crash
+# the server on startup — the error is surfaced only when the chat
+# endpoint is actually called.
+_agent = None
+
+
+def _get_agent():
+    global _agent
+    if _agent is None:
+        _agent = build_sql_agent()
+    return _agent
 
 
 def process_query(user, message: str):
@@ -32,7 +40,7 @@ answering factual questions, simply return the requested value(s).
     prompt = system_prompt + "\nUser Query: " + message
     # agent_executor.run returns a string
     try:
-        result = agent.run(prompt)
+        result = _get_agent().run(prompt)
     except Exception as e:
         # gracefully handle errors and surface to frontend
         return f"Error handling query: {str(e)}"

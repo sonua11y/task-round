@@ -5,13 +5,12 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-# ...existing code...
 
 def update_courses(db: Session, user: Student, courses):
     print("update_courses received:", courses)
     try:
+        # Delete inside the same transaction so a later error can be rolled back
         db.query(Application).filter(Application.student_id == user.id).delete()
-        db.commit()
         for course in courses:
             course_id = course.get('id')
             print("Processing course_id:", course_id)
@@ -19,6 +18,7 @@ def update_courses(db: Session, user: Student, courses):
                 course_obj = db.query(Course).filter(Course.id == course_id).first()
                 if not course_obj:
                     print(f"Course with id {course_id} does not exist!")
+                    db.rollback()
                     raise Exception(f"Course with id {course_id} does not exist!")
                 app = Application(student_id=user.id, course_id=course_id, status="submitted")
                 db.add(app)
@@ -27,8 +27,7 @@ def update_courses(db: Session, user: Student, courses):
     except Exception as e:
         print("Exception in update_courses:", e)
         raise
-from app.db.models import Student, EducationDetails, Application, Course
-from fastapi import HTTPException
+
 
 def get_full_profile(db: Session, user: Student):
     education = db.query(EducationDetails).filter(
@@ -54,10 +53,6 @@ def get_full_profile(db: Session, user: Student):
         "education": education,
         "courses": enrolled_courses
     }
-
-import logging
-
-logger = logging.getLogger(__name__)
 
 
 def update_personal(db: Session, user: Student, data):
