@@ -1,5 +1,4 @@
 import os
-import time
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -55,22 +54,11 @@ def _seed():
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    for attempt in range(1, 6):
-        try:
-            Base.metadata.create_all(bind=engine)
-            break
-        except Exception as e:
-            if attempt < 5:
-                print(f"DB locked (attempt {attempt}/5), retrying in 2s...")
-                time.sleep(2)
-            else:
-                print(f"WARNING: create_all skipped after 5 attempts ({e}). Tables assumed to exist.")
-
     try:
+        Base.metadata.create_all(bind=engine)
         _seed()
     except Exception as e:
-        print(f"WARNING: startup seed skipped ({e})")
-
+        print(f"WARNING: startup init skipped ({e})")
     yield
 
 

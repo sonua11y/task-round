@@ -86,7 +86,13 @@ export default function ProfileForm({ profile, refresh }) {
       if (section === "personal") {
         await api.put("/profile/personal", personal);
       } else if (section === "education") {
-        await api.put("/profile/education", education);
+        // Convert empty string to null for percentage fields
+        const payload = {
+          ...education,
+          tenth_percentage: education.tenth_percentage === "" ? null : Number(education.tenth_percentage),
+          twelfth_percentage: education.twelfth_percentage === "" ? null : Number(education.twelfth_percentage),
+        };
+        await api.put("/profile/education", payload);
       } else if (section === "courses") {
         await api.put("/profile/courses", courses);
       }
@@ -103,7 +109,7 @@ export default function ProfileForm({ profile, refresh }) {
 
   // Get student ID from localStorage if not present in profile
   const studentId = personal.student_id || localStorage.getItem("student_id") || "(not set)";
-
+    // ...existing code...
   useEffect(() => {
     // If student_id is not set, generate and save it
     if (!profile?.student_id && !localStorage.getItem("student_id")) {
@@ -127,7 +133,7 @@ export default function ProfileForm({ profile, refresh }) {
         <button className="border rounded px-5 py-2 font-medium" style={{cursor:'pointer'}} onClick={() => { localStorage.removeItem("token"); navigate("/login"); }}>Logout</button>
       </div>
       {/* Profile header row (no faded container) */}
-      <div className="w-[700px] mx-auto pt-20 pb-2">
+      <div className="w-175 mx-auto pt-20 pb-2">
         <h2 className="font-bold text-2xl mb-6 text-left">My Profile</h2>
         <div className="flex items-center gap-4 mb-8">
           <div className="w-20 h-20 rounded-full bg-blue-500 flex items-center justify-center text-white text-4xl font-bold border-4 border-blue-200 mx-0">
@@ -144,7 +150,7 @@ export default function ProfileForm({ profile, refresh }) {
       </div>
       {/* Center the three sections, no outer faded container */}
       <div className="flex flex-col items-center w-full">
-        <div className="w-[700px] mb-5 flex flex-col gap-2 items-start bg-white rounded-lg shadow p-6">
+        <div className="w-175 mb-5 flex flex-col gap-2 items-start bg-white rounded-lg shadow p-6">
           {/* Personal Details Section */}
           <div className="flex justify-between items-center w-full mb-2">
             <span className="font-semibold text-lg">Personal Details</span>
@@ -172,7 +178,7 @@ export default function ProfileForm({ profile, refresh }) {
             </div>
           )}
         </div>
-        <div className="w-[700px] mb-5 flex flex-col gap-2 items-start bg-white rounded-lg shadow p-6">
+        <div className="w-175 mb-5 flex flex-col gap-2 items-start bg-white rounded-lg shadow p-6">
           {/* Education Details Section */}
           <div className="flex justify-between items-center w-full mb-2">
             <span className="font-semibold text-lg">Education Details</span>
@@ -208,7 +214,7 @@ export default function ProfileForm({ profile, refresh }) {
             </div>
           )}
         </div>
-        <div className="w-[700px] mb-8 flex flex-col gap-2 items-start bg-white rounded-lg shadow p-6">
+        <div className="w-175 mb-8 flex flex-col gap-2 items-start bg-white rounded-lg shadow p-6">
           {/* Enrolled Courses Section */}
           <div className="flex justify-between items-center mb-2 w-full">
             <span className="font-semibold text-lg">Enrolled Courses</span>
