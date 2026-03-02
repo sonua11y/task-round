@@ -40,7 +40,9 @@ export default function Register() {
     e.preventDefault();
     if (!validate()) return;
     try {
-      await registerUser(form);
+      // Truncate password to 72 characters
+      const formData = { ...form, password: form.password.slice(0, 72) };
+      await registerUser(formData);
       navigate("/login");
     } catch (error) {
       const errorMsg = error?.detail || error?.message || error?.toString();
