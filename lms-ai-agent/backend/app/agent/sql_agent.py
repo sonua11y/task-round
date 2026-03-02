@@ -1,6 +1,7 @@
 from langchain_community.utilities import SQLDatabase
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import HumanMessage
+from sqlalchemy import text
 import os
 import logging
 
@@ -65,14 +66,13 @@ User request: {user_prompt}
 
             # execute the SQL; errors are captured and returned as text
             try:
-                execution_result = self.db.run(sql)
-                # Commit changes for UPDATE/INSERT/DELETE
+                # For write operations, get a direct connection and commit
                 if sql.strip().upper().startswith(("UPDATE", "INSERT", "DELETE")):
-                    # Use SQLAlchemy's engine to commit if possible
-                    try:
-                        self.db._engine.raw_connection().commit()
-                    except Exception as commit_exc:
-                        logger.error(f"DB commit error: {commit_exc}")
+                    with self.db._engine.begin() as connection:
+                        result = connection.execute(text(sql))
+                        execution_result = str(result.rowcount) + " row(s) affected"
+                else:
+                    execution_result = self.db.run(sql)
                 logger.debug(f"SQL execution result: {execution_result}")
             except Exception as exc:
                 logger.error(f"SQL execution error for '{sql}': {exc}")
