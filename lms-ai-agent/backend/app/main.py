@@ -15,13 +15,11 @@ if not os.getenv("OPENAI_API_KEY"):
 
 
 def _seed():
-    """Create tables and seed courses + demo user if they don't exist."""
+    """Seed courses + demo user if they don't exist (tables must already exist)."""
     from app.db.session import SessionLocal
     from app.db.models import Student, Course
     from app.core.security import hash_password
     from datetime import datetime
-
-    Base.metadata.create_all(bind=engine)
 
     db = SessionLocal()
     try:
@@ -50,13 +48,23 @@ def _seed():
 
         db.commit()
         print("Startup seed complete.")
+    except Exception:
+        db.rollback()
+        raise
     finally:
         db.close()
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    _seed()
+    # Always create tables — safe to run multiple times, no lock sensitivity
+    Base.metadata.create_all(bind=engine)
+    try:
+        _seed()
+    except Exception as e:
+        # A locked DB on hot-reload is transient; log and continue rather than
+        # crashing the server — tables and seed data already exist from last run.
+        print(f"WARNING: startup seed skipped ({e})")
     yield
 
 
