@@ -20,7 +20,8 @@ def hash_password(password: str):
     return pwd_context.hash(password_bytes.decode("utf-8", errors="ignore"))
 
 def verify_password(plain, hashed):
-    return pwd_context.verify(plain, hashed)
+    plain_bytes = plain.encode("utf-8")[:72]
+    return pwd_context.verify(plain_bytes.decode("utf-8", errors="ignore"), hashed)
 
 def create_token(data: dict):
     expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
