@@ -21,6 +21,18 @@ def process_query(user, message: str):
     a friendly, human-readable way suitable for the frontend chat UI.
     """
 
+    # Check if the user is trying to edit their email
+    email_edit_keywords = [
+        "edit email", "change email", "update email", "modify email",
+        "edit my email", "change my email", "update my email", "modify my email",
+        "edit the email", "change the email", "update the email", "modify the email",
+        "email to", "email id to", "email address to"
+    ]
+    
+    message_lower = message.lower()
+    if any(keyword in message_lower for keyword in email_edit_keywords):
+        return "Sorry, the email id is ineditable. You can register with another email id"
+
     system_prompt = f"""
 You are an AI assistant for an LMS system.
 

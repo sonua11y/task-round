@@ -130,7 +130,12 @@ export default function ProfileForm({ profile, refresh }) {
         <span style={{ fontFamily: '"Pacifico", cursive', fontSize: '2rem', display: 'flex', alignItems: 'center', gap: '12px', color: '#1f2937' }}>
           <span style={{ fontSize: '2rem' }}>👩🏻‍🎓</span> Kampus
         </span>
-        <button className="border rounded px-5 py-2 font-medium" style={{cursor:'pointer'}} onClick={() => { localStorage.removeItem("token"); navigate("/login"); }}>Logout</button>
+        <button className="border rounded px-5 py-2 font-medium flex items-center gap-2" style={{cursor:'pointer'}} onClick={() => { localStorage.removeItem("token"); navigate("/login"); }}>
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
+          </svg>
+          Logout
+        </button>
       </div>
       {/* Profile header row (no faded container) */}
       <div className="w-175 mx-auto pt-20 pb-2">
